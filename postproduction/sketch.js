@@ -7,11 +7,14 @@ let angelus;
 let distanceThresholdSlider;
 let img;
 let fileInput;
+let currentShader = "bright"; // initialize currentShader to "bright"
 
 function preload() {
   quant = readShader("quant.frag", { varyings: Tree.texcoords2 });
 
   bright = readShader("bright.frag", { varyings: Tree.texcoords2 });
+
+  woo = readShader("woo.frag", { varyings: Tree.texcoords2 });
 
   img = loadImage("myImage.jpg");
 }
@@ -28,6 +31,11 @@ function setup() {
   bright_pg.textureMode(NORMAL);
   bright_pg.shader(bright);
 
+  woo_pg = createGraphics(width, height, WEBGL);
+  woo_pg.colorMode(RGB, 1);
+  woo_pg.textureMode(NORMAL);
+  woo_pg.shader(woo);
+
   distanceThresholdSlider = createSlider(0, 1000, 100, 10);
   distanceThresholdSlider.position(width - 120, 20);
   distanceThresholdSlider.style("width", "80px");
@@ -38,15 +46,38 @@ function setup() {
   // create file input element
   fileInput = createFileInput(handleFile);
   fileInput.position(20, 50);
+
+  // create button to flip between bright and woo shaders
+  let shaderButton = createButton("Switch Shader");
+  shaderButton.position(width - 120, 50);
+  shaderButton.mousePressed(() => {
+    if (currentShader === "bright") {
+      currentShader = "woo";
+    } else {
+      currentShader = "bright";
+    }
+  });
 }
 
 function draw() {
   if (img) {
-    bright_pg.emitPointerPosition(bright, mouseX, mouseY, "iMouse");
-    bright.setUniform("texture", img);
-    bright.setUniform("distanceThreshold", distanceThresholdSlider.value());
-    pg = bright_pg;
-    pg.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    if (currentShader === "woo") { // check currentShader value
+      woo_pg.background(125);
+      woo.setUniform("texture", img);
+      woo_pg.emitPointerPosition(woo, mouseX, mouseY, "iMouse");
+      woo.setUniform("iChannel0", img);
+      woo_pg.emitResolution(woo, "iResolution");
+      woo_pg.emitResolution(woo);
+      woo.setUniform("radio", distanceThresholdSlider.value());
+      pg = woo_pg;
+      pg.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    } else {
+      bright_pg.emitPointerPosition(bright, mouseX, mouseY, "iMouse");
+      bright.setUniform("texture", img);
+      bright.setUniform("distanceThreshold", distanceThresholdSlider.value());
+      pg = bright_pg;
+      pg.quad(-1, 1, 1, 1, 1, -1, -1, -1);
+    }
 
     quant_pg.background(125);
     quant.setUniform("texture", pg);
