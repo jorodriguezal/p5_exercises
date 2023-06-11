@@ -1,15 +1,11 @@
-let lens_pg, kaleidoscope_pg, dysmorphic_pg;
-let kaleidoscope, lens, dysmorphic;
-let segments;
-let magnification;
+
 let lens_radius;
-let angelus;
 let distanceThresholdSlider;
 let img;
 let fileInput;
 let currentShader = "bright"; // initialize currentShader to "bright"
-
-function preload() {
+let scaleSlider;
+function preload() { // load shaders and image
   quant = readShader("quant.frag", { varyings: Tree.texcoords2 });
 
   bright = readShader("bright.frag", { varyings: Tree.texcoords2 });
@@ -21,7 +17,7 @@ function preload() {
 
 function setup() {
   createCanvas(700, 500);
-  quant_pg = createGraphics(width, height, WEBGL);
+  quant_pg = createGraphics(width, height, WEBGL); // create graphics objects
   quant_pg.colorMode(RGB, 1);
   quant_pg.textureMode(NORMAL);
   quant_pg.shader(quant);
@@ -36,7 +32,7 @@ function setup() {
   woo_pg.textureMode(NORMAL);
   woo_pg.shader(woo);
 
-  distanceThresholdSlider = createSlider(0, 1000, 100, 10);
+  distanceThresholdSlider = createSlider(0, 1000, 250, 10);
   distanceThresholdSlider.position(width - 120, 20);
   distanceThresholdSlider.style("width", "80px");
 
@@ -57,21 +53,28 @@ function setup() {
       currentShader = "bright";
     }
   });
+
+  // create slider for "woo" shader
+  scaleSlider = createSlider(0, 2, 0.4, 0.1);
+  scaleSlider.position(width - 120, 80);
+  scaleSlider.style("width", "80px");
 }
 
 function draw() {
   if (img) {
     if (currentShader === "woo") { // check currentShader value
+      scaleSlider.show(); // show slider when switching to "woo" shader
       woo_pg.background(125);
       woo.setUniform("texture", img);
       woo_pg.emitPointerPosition(woo, mouseX, mouseY, "iMouse");
       woo.setUniform("iChannel0", img);
       woo_pg.emitResolution(woo, "iResolution");
-      woo_pg.emitResolution(woo);
       woo.setUniform("radio", distanceThresholdSlider.value());
+      woo.setUniform("scale", scaleSlider.value());
       pg = woo_pg;
       pg.quad(-1, 1, 1, 1, 1, -1, -1, -1);
     } else {
+      scaleSlider.hide(); // hide slider when switching to "bright" shader
       bright_pg.emitPointerPosition(bright, mouseX, mouseY, "iMouse");
       bright.setUniform("texture", img);
       bright.setUniform("distanceThreshold", distanceThresholdSlider.value());

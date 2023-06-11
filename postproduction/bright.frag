@@ -1,5 +1,3 @@
-// fragment shader to increase brightness around the mouse cursor
-
 precision mediump float;
 
 uniform sampler2D texture;
